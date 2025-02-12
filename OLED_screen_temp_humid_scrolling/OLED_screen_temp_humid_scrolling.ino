@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <stdlib.h>
 
 #include <DHT.h>
 #include "DHT.h"             // Library for DHT sensors
@@ -10,6 +11,10 @@
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
+char temp_string[] = "Temperature:";
+int temp_string_size = sizeof(temp_string);
+char tempValF_string[5];
 
 DHT dht(dhtPin, dhtType);    // Initialise the DHT library
 
@@ -40,6 +45,9 @@ void loop() {
   tempValC = dht.readTemperature();        // get the temperature in degrees Celcius from the DHT sensor
   tempValF = dht.readTemperature(true);    // get the temperature in degrees Fahrenheit from the DHT sensor
 
+  dtostrf(tempValF, -3, 2,tempValF_string);
+  int tempValF_size = sizeof(tempValF_string);
+
   // Check if all values are read correctly, if not try again and exit loop()
   if (isnan(humidityVal) || isnan(tempValC) || isnan(tempValF)) {
     Serial.println("Reading DHT sensor failed!");
@@ -47,38 +55,45 @@ void loop() {
     // end the loop() function
     return;
   }
-  
 
-  // Print all values to the serial monitor
-  // \t prints a tab character
-  // Serial.print("Humidity: ");
-  // Serial.print(humidityVal);
-  // Serial.println(" %");
 
-  // Serial.print("Temperature: ");
-  // Serial.print(tempValC);
-  // Serial.print(" °C ");
-  // Serial.print(tempValF);
-  // Serial.println(" °F");
-
-  display.setTextSize(1.5);
+  display.setTextSize(5.5);
   display.setTextColor(WHITE);
-  display.setCursor(0, 10);
-  // Display static text
-  display.print("Temperature:");
-  display.print(tempValF);
-  display.print((char)247); // degree symbol 
+
+  for (int i = 0; i <= temp_string_size; i++){
+    display.setCursor(0, 15);
+    display.print(temp_string+i);
+    display.display();
+    delay(1000);
+    display.clearDisplay();
+    display.display();
+  }
+  for(int j = 0; j <= tempValF_size; j++){
+    display.setCursor(0, 15);
+    display.print(tempValF_string+j);
+    display.display();
+    delay(1000);
+    display.clearDisplay();
+    display.display();
+  }
   display.println(" F");
   display.display(); 
-
-  display.setTextSize(1.5);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 20);
+  //display.setCursor(0, 10);
   // Display static text
-  display.print("Humidity:");
-  display.print(humidityVal);
-  display.print((char)247); // percentage symbol
-  display.display(); 
+  //display.print("Temperature:");
+  //display.print(tempValF);
+  //display.print((char)247); // degree symbol 
+ // display.println(" F");
+  //display.display(); 
+
+  // display.setTextSize(1.5);
+  // display.setTextColor(WHITE);
+  // display.setCursor(0, 20);
+  // // Display static text
+  // display.print("Humidity:");
+  // display.print(humidityVal);
+  // display.print((char)247); // percentage symbol
+  // display.display(); 
   
   delay(5000);
   display.clearDisplay(); //sort of note doing anything w/o .display()
