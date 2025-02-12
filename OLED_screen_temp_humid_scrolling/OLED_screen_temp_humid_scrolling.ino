@@ -12,8 +12,8 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
-char temp_string[] = "Temperature:";
-int temp_string_size = sizeof(temp_string);
+char becomes_temp_message[] = "Temperature:";
+int becomes_temp_message_size;
 char tempValF_string[5];
 
 DHT dht(dhtPin, dhtType);    // Initialise the DHT library
@@ -46,6 +46,12 @@ void loop() {
   tempValF = dht.readTemperature(true);    // get the temperature in degrees Fahrenheit from the DHT sensor
 
   dtostrf(tempValF, -3, 2,tempValF_string);
+  strcat(becomes_temp_message, tempValF_string);
+  strcat(becomes_temp_message, (char)247); //not working
+  strcat(becomes_temp_message, "F");
+
+  becomes_temp_message_size = sizeof(becomes_temp_message);
+
   int tempValF_size = sizeof(tempValF_string);
 
   // Check if all values are read correctly, if not try again and exit loop()
@@ -60,24 +66,14 @@ void loop() {
   display.setTextSize(5.5);
   display.setTextColor(WHITE);
 
-  for (int i = 0; i <= temp_string_size; i++){
+  for (int i = 0; i <= becomes_temp_message_size; i++){
     display.setCursor(0, 15);
-    display.print(temp_string+i);
+    display.print(becomes_temp_message+i);
     display.display();
     delay(1000);
     display.clearDisplay();
     display.display();
   }
-  for(int j = 0; j <= tempValF_size; j++){
-    display.setCursor(0, 15);
-    display.print(tempValF_string+j);
-    display.display();
-    delay(1000);
-    display.clearDisplay();
-    display.display();
-  }
-  display.println(" F");
-  display.display(); 
   //display.setCursor(0, 10);
   // Display static text
   //display.print("Temperature:");
