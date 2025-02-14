@@ -16,6 +16,10 @@ char becomes_temp_message[100];
 int becomes_temp_message_size;
 char tempValF_string[5];
 
+char becomes_humid_message[100];
+int becomes_humid_message_size;
+char humidityVal_string[5];
+
 DHT dht(dhtPin, dhtType);    // Initialise the DHT library
 
 float humidityVal;           // humidity
@@ -46,6 +50,7 @@ void loop() {
   tempValC = dht.readTemperature();        // get the temperature in degrees Celcius from the DHT sensor
   tempValF = dht.readTemperature(true);    // get the temperature in degrees Fahrenheit from the DHT sensor
 
+  //create string that prints for temp info
   dtostrf(tempValF, -3, 2,tempValF_string);
   strcpy(becomes_temp_message, "Temperature:");
   strcat(becomes_temp_message, tempValF_string);
@@ -56,6 +61,16 @@ void loop() {
 
   int tempValF_size = sizeof(tempValF_string);
 
+
+  //create string that prints for humid info
+  dtostrf(humidityVal, -3, 2, humidityVal_string);
+  strcpy(becomes_humid_message, "Humidity:");
+  strcat(becomes_humid_message, humidityVal_string);
+  strcat(becomes_humid_message, " ");
+
+  becomes_humid_message_size = sizeof(becomes_humid_message);
+  int humidityVal_size = sizeof(humidityVal);
+
   // Check if all values are read correctly, if not try again and exit loop()
   if (isnan(humidityVal) || isnan(tempValC) || isnan(tempValF)) {
     Serial.println("Reading DHT sensor failed!");
@@ -65,7 +80,7 @@ void loop() {
   }
 
 
-  display.setTextSize(5);
+  display.setTextSize(5.5);
   display.setTextColor(WHITE);
 
   for (int i = 0; i <= becomes_temp_message_size; i++){
@@ -76,22 +91,16 @@ void loop() {
     display.clearDisplay();
     display.display();
   }
-  //display.setCursor(0, 10);
-  // Display static text
-  //display.print("Temperature:");
-  //display.print(tempValF);
-  //display.print((char)247); // degree symbol 
- // display.println(" F");
-  //display.display(); 
 
-  // display.setTextSize(1.5);
-  // display.setTextColor(WHITE);
-  // display.setCursor(0, 20);
-  // // Display static text
-  // display.print("Humidity:");
-  // display.print(humidityVal);
-  // display.print((char)247); // percentage symbol
-  // display.display(); 
+  //for loop conflicts with temp one
+  for (int i = 0; i <= becomes_humid_message_size; i++){
+    display.setCursor(0, 15);
+    display.print(becomes_humid_message+i);
+    display.display();
+    delay(1000);
+    display.clearDisplay();
+    display.display();
+  }
   
   delay(5000);
   display.clearDisplay(); //sort of note doing anything w/o .display()
