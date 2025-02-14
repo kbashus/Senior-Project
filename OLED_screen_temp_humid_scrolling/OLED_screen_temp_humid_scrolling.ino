@@ -12,7 +12,7 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
-char becomes_temp_message[] = "Temperature:";
+char becomes_temp_message[100];
 int becomes_temp_message_size;
 char tempValF_string[5];
 
@@ -35,6 +35,7 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
+  display.setTextWrap(false);
   delay(2000);
   display.clearDisplay();
   
@@ -46,9 +47,10 @@ void loop() {
   tempValF = dht.readTemperature(true);    // get the temperature in degrees Fahrenheit from the DHT sensor
 
   dtostrf(tempValF, -3, 2,tempValF_string);
+  strcpy(becomes_temp_message, "Temperature:");
   strcat(becomes_temp_message, tempValF_string);
-  strcat(becomes_temp_message, (char)247); //not working
-  strcat(becomes_temp_message, "F");
+  //strcat(becomes_temp_message, (char)247); //not working 
+  strcat(becomes_temp_message, " F");
 
   becomes_temp_message_size = sizeof(becomes_temp_message);
 
@@ -63,7 +65,7 @@ void loop() {
   }
 
 
-  display.setTextSize(5.5);
+  display.setTextSize(5);
   display.setTextColor(WHITE);
 
   for (int i = 0; i <= becomes_temp_message_size; i++){
