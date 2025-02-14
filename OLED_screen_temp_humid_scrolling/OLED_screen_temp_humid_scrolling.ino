@@ -63,13 +63,13 @@ void loop() {
 
 
   //create string that prints for humid info
-  dtostrf(humidityVal, -3, 2, humidityVal_string);
-  strcpy(becomes_humid_message, "Humidity:");
-  strcat(becomes_humid_message, humidityVal_string);
-  strcat(becomes_humid_message, " ");
+  // dtostrf(humidityVal, -3, 2, humidityVal_string);
+  // strcpy(becomes_humid_message, "Humidity:");
+  // strcat(becomes_humid_message, humidityVal_string);
+  // strcat(becomes_humid_message, " ");
 
-  becomes_humid_message_size = sizeof(becomes_humid_message);
-  int humidityVal_size = sizeof(humidityVal);
+  // becomes_humid_message_size = sizeof(becomes_humid_message);
+  // int humidityVal_size = sizeof(humidityVal);
 
   // Check if all values are read correctly, if not try again and exit loop()
   if (isnan(humidityVal) || isnan(tempValC) || isnan(tempValF)) {
@@ -83,6 +83,7 @@ void loop() {
   display.setTextSize(5.5);
   display.setTextColor(WHITE);
 
+  //will only do one loop, temp or humid
   for (int i = 0; i <= becomes_temp_message_size; i++){
     display.setCursor(0, 15);
     display.print(becomes_temp_message+i);
@@ -92,16 +93,24 @@ void loop() {
     display.display();
   }
 
-  //for loop conflicts with temp one
-  for (int i = 0; i <= becomes_humid_message_size; i++){
+   //create string that prints for humid info
+  dtostrf(humidityVal, -3, 2, humidityVal_string);
+  strcpy(becomes_humid_message, "Humidity:");
+  strcat(becomes_humid_message, humidityVal_string);
+  strcat(becomes_humid_message, " ");
+
+  becomes_humid_message_size = sizeof(becomes_humid_message);
+  int humidityVal_size = sizeof(humidityVal);
+
+  for (int j = 0; j <= becomes_humid_message_size; j++){
     display.setCursor(0, 15);
-    display.print(becomes_humid_message+i);
+    display.print(becomes_humid_message+j);
     display.display();
     delay(1000);
     display.clearDisplay();
     display.display();
   }
-  
+
   delay(5000);
-  display.clearDisplay(); //sort of note doing anything w/o .display()
+  display.clearDisplay(); //sort of not doing anything w/o .display()
 }
