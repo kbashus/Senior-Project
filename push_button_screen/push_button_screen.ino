@@ -14,11 +14,11 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
-char becomes_temp_message[50];
+char becomes_temp_message[18];
 int becomes_temp_message_size;
 char tempValF_string[5];
 
-char becomes_humid_message[50];
+char becomes_humid_message[15];
 int becomes_humid_message_size;
 char humidityVal_string[5];
 
@@ -66,7 +66,6 @@ void buttonPress1(){
   
 }
 void buttonPress2(){
-  //buttonState = digitalRead(BUTTON_PIN);
   buttonPressed2 = true;
   
 }
@@ -119,9 +118,13 @@ void loop() {
     display.clearDisplay();
     display.display();
   }
+  //display.drawCircle(xcenter, ycenter, radius, WHITE);
+
+
     
   buttonPressed1 = false;  // Reset the button flag
   }
+
   else if (buttonPressed2) {
     display.setTextSize(5.5);
     display.setTextColor(WHITE);
@@ -129,7 +132,7 @@ void loop() {
     dtostrf(humidityVal, -3, 2, humidityVal_string);
     strcpy(becomes_humid_message, "Humidity:");
     strcat(becomes_humid_message, humidityVal_string);
-    strcat(becomes_humid_message, " ");
+    strcat(becomes_humid_message, "%");
 
     becomes_humid_message_size = sizeof(becomes_humid_message);
     int humidityVal_size = sizeof(humidityVal);
@@ -142,6 +145,8 @@ void loop() {
     display.clearDisplay();
     display.display();
   }
+
+
   buttonPressed2 = false;  // Reset the button flag
   }
 
