@@ -12,7 +12,7 @@ void loop() {
  
   analogWrite(IN1,255/2);
   digitalWrite(IN2, LOW);
-  delay(5000);
+  delay(9000);
 
 // motor 1 stop for 3 seconds
   digitalWrite(IN1,LOW);

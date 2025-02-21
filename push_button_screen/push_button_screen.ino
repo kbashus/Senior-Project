@@ -22,6 +22,10 @@ char becomes_humid_message[15];
 int becomes_humid_message_size;
 char humidityVal_string[5];
 
+// const uint8_t degreeSymbolBitmap[] PROGMEM = {
+//   0x1C, 0x36, 0x36, 0x1C,  // This is a simple degree symbol bitmap, you can adjust it as needed
+// };
+
 
 DHT dht(dhtPin, dhtType);    // Initialise the DHT library
 
@@ -75,17 +79,6 @@ void loop() {
   tempValC = dht.readTemperature();        // get the temperature in degrees Celcius from the DHT sensor
   tempValF = dht.readTemperature(true);    // get the temperature in degrees Fahrenheit from the DHT sensor
 
- 
-
-  //create string that prints for humid info
-  // dtostrf(humidityVal, -3, 2, humidityVal_string);
-  // strcpy(becomes_humid_message, "Humidity:");
-  // strcat(becomes_humid_message, humidityVal_string);
-  // strcat(becomes_humid_message, " ");
-
-  // becomes_humid_message_size = sizeof(becomes_humid_message);
-  // int humidityVal_size = sizeof(humidityVal);
-
 
   // Check if all values are read correctly, if not try again and exit loop()
   if (isnan(humidityVal) || isnan(tempValC) || isnan(tempValF)) {
@@ -104,7 +97,7 @@ void loop() {
     dtostrf(tempValF, -3, 2,tempValF_string);
     strcpy(becomes_temp_message, "Temperature:");
     strcat(becomes_temp_message, tempValF_string);
-    //strcat(becomes_temp_message, (char)247); //not working 
+    //strcat(becomes_temp_message, "\xB0"); //not working 
     strcat(becomes_temp_message, " F");
 
     becomes_temp_message_size = sizeof(becomes_temp_message);
@@ -118,10 +111,11 @@ void loop() {
     display.clearDisplay();
     display.display();
   }
-  //display.drawCircle(xcenter, ycenter, radius, WHITE);
+  // display.drawBitmap(0, 15, degreeSymbolBitmap, 2, 2, WHITE);
+  // display.display();
+  // display.clearDisplay();
+  // display.display();
 
-
-    
   buttonPressed1 = false;  // Reset the button flag
   }
 
