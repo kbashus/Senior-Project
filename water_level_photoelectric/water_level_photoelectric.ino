@@ -1,4 +1,4 @@
-/*!
+/*! Based on
  * @file  SEN0205.ino
  * @brief  This example is to get liquid level. (Liquid Level Sensor-FS-IR02)
  * @copyright  Copyright (c) 2010 DFRobot Co.Ltd (http://www.dfrobot.com)
