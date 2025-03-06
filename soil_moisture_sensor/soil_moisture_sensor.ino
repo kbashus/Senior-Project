@@ -1,5 +1,5 @@
 
-
+int soil_sensor = A0; 
 
 const int dry = 513; // value for dry sensor
 const int wet = 260; // value for wet sensor
@@ -11,9 +11,9 @@ void setup()
 
 void loop()
 {
-  int sensorVal = analogRead(A0);
+  int sensorVal = analogRead(soil_sensor);
 
-  // Sensor has a range of 260 to 502
+  // Sensor has a range
   // We want to translate this to a scale or 0% to 100%
   // More info: https://www.arduino.cc/reference/en/language/functions/math/map/
   int percentageHumidity = map(sensorVal, wet, dry, 100, 0); 

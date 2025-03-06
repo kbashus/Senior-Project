@@ -8,7 +8,7 @@ void setup() {
 }
 void loop() {
   
- // motor 1 run 50% speed for 5 seconds
+ // motor 1 run 50% speed
  
   analogWrite(IN1,255/2);
   digitalWrite(IN2, LOW);
