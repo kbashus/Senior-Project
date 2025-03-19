@@ -2,7 +2,7 @@
 
 #include "DHT.h"             // Library for DHT sensors
 
-#define dhtPin 5            // data pin
+#define dhtPin 53            // data pin
 
 
 #define dhtType DHT22      // DHT 22 (AM2302)

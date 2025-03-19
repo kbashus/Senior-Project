@@ -1,4 +1,4 @@
-int light_sensor = A3; 
+int light_sensor = A11; 
  
 void setup() {
 Serial.begin(9600); //begin Serial Communication

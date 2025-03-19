@@ -3,7 +3,7 @@
 
 const int dry = 513; // value for dry sensor
 const int wet = 260; // value for wet sensor
-
+//all above done in final code "push_button_screen.ino"
 int value = 0;
 float voltage;
 
@@ -15,7 +15,7 @@ void setup()
 
 void loop()
 {
-  int sensorVal = analogRead(A0);
+  int sensorVal = analogRead(A15);
 
   // Sensor has a range of 260 to 502
   // We want to translate this to a scale or 0% to 100%

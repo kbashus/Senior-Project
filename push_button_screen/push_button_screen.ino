@@ -8,10 +8,12 @@
 
 #define BUTTON_PIN_TEMP 3
 #define BUTTON_PIN_HUMID 2
-//#define BUTTON_PIN_SOIL 
-//#define BUTTON_PIN_LIGHT 
-#define dhtPin 5            // data pin
+#define BUTTON_PIN_SOIL 18
+#define BUTTON_PIN_LIGHT 19
+#define dhtPin 53            // temp/humid
 #define dhtType DHT22      // DHT 22 (AM2302)
+#define soil_sensor A15
+#define light_sensor A11
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -24,13 +26,13 @@ char becomes_humid_message[15];
 int becomes_humid_message_size;
 char humidityVal_string[5];
 //
-// char becomes_soil_message[9];
-// int becomes_soil_message_size;
-// char soilVal_string[3];
-// //
-// char becomes_light_message[10];
-// int becomes_light_message_size;
-// char lightVal_string[3];
+char becomes_soil_message[9];
+int becomes_soil_message_size;
+char soilVal_string[3];
+// 
+char becomes_light_message[10];
+int becomes_light_message_size;
+char lightVal_string[3];
 
 
 /* const uint8_t degreeSymbolBitmap[] PROGMEM = {
@@ -48,20 +50,21 @@ float heatIndexC;            // windchill in degrees Celcius
 float heatIndexF;            // windchill in degrees Fahrenheit
 
 //soil
-int soil_sensor = A0; 
+//int soil_sensor = A15; 
 int raw_soil;
 int soilVal;
-const int dry = 513; // value for dry sensor
+const int dry = 566; // value for dry sensor
 const int wet = 260; // value for wet sensor
 
 //light
-int light_sensor = A3;
 int raw_light;
 int lightVal;
 
 //volatile int buttonState
 volatile bool buttonPressedTemp = false;
 volatile bool buttonPressedHumid = false;
+volatile bool buttonPressedSoil = false;
+volatile bool buttonPressedLight = false;
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -76,8 +79,8 @@ void setup() {
   //pinMode(BUTTON_PIN_LIGHT, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_TEMP), buttonPressTemp, RISING);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_HUMID), buttonPressHumid, RISING);
-  //attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_SOIL), buttonPressSoil, RISING);
-  //attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_LIGHT), buttonPressLight, RISING);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_SOIL), buttonPressSoil, RISING);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_LIGHT), buttonPressLight, RISING);
 
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
     Serial.println(F("SSD1306 allocation failed"));
@@ -98,13 +101,12 @@ void buttonPressTemp(){
 void buttonPressHumid(){
   buttonPressedHumid = true;
 }
-// void buttonPressSoil(){
-//   //buttonState = digitalRead(BUTTON_PIN);
-//   buttonPressedSoil = true;
-// }
-// void buttonPressLight(){
-//   buttonPressedLight = true;
-// }
+void buttonPressSoil(){
+  buttonPressedSoil = true;
+}
+void buttonPressLight(){
+  buttonPressedLight = true;
+}
 
 void loop() {
   //temp and humid read
@@ -119,12 +121,12 @@ void loop() {
   }
 
   //soil moisture read
-  //raw_soil = analogRead(soil_sensor);
-  //soilVal = map(sensorVal, wet, dry, 100, 0); 
+  raw_soil = analogRead(soil_sensor);
+  soilVal = map(raw_soil, wet, dry, 100, 0); 
 
   //light level read
-  //raw_light = analogRead(light_sensor); // read the raw value from light_sensor
-  //lightVal = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100v
+  raw_light = analogRead(light_sensor); // read the raw value from light_sensor
+  lightVal = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100v
   
 
   //TEMP
@@ -182,16 +184,19 @@ void loop() {
   buttonPressedHumid = false;  // Reset the button flag
   }
 
-/*
+
   //SOIL
   else if (buttonPressedSoil) {
     display.setTextSize(5.5);
     display.setTextColor(WHITE);
     //create string that prints for soil info
     dtostrf(soilVal, -1, 0, soilVal_string);
+
     strcpy(becomes_soil_message, "Soil:");
     strcat(becomes_soil_message, soilVal_string);
     strcat(becomes_soil_message, "%");
+
+    becomes_soil_message_size = sizeof(becomes_soil_message);
 
     for (int i = 0; i <= becomes_soil_message_size; i++){
     display.setCursor(0, 15);
@@ -213,7 +218,9 @@ void loop() {
     dtostrf(lightVal, -1, 0, lightVal_string);
     strcpy(becomes_light_message, "Light:");
     strcat(becomes_light_message, lightVal_string);
-    strcat(becomes_light_message, "%");
+    //strcat(becomes_light_message, "%");
+
+    becomes_light_message_size = sizeof(becomes_light_message);
 
     for (int i = 0; i <= becomes_light_message_size; i++){
     display.setCursor(0, 15);
@@ -225,6 +232,6 @@ void loop() {
   }
 
     buttonPressedLight = false;
-  } */
+  } /**/
 
 }

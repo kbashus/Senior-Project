@@ -1,7 +1,7 @@
 
-int soil_sensor = A0; 
+int soil_sensor = A15; 
 
-const int dry = 513; // value for dry sensor
+const int dry = 566; // value for dry sensor
 const int wet = 260; // value for wet sensor
 
 void setup()
@@ -29,5 +29,5 @@ void loop()
     Serial.println((String) "Dry: " + percentageHumidity + "%");
   }
   
-  delay(120000);
+  delay(1000);
 }
