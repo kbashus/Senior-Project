@@ -10,6 +10,7 @@
 #include "Vocab_US_TI99.h" //pauses
 #include "Vocab_US_Clock.h" //spc_ //nums
 #include "Vocab_US_Acorn.h" //"F" //spa_
+#include "Vocab_AstroBlaster.h" //"outoffuel"
 Talkie voice;
 
 
@@ -24,6 +25,7 @@ Talkie voice;
 #define dhtType DHT22      // DHT 22 (AM2302)
 #define soil_sensor A15
 #define light_sensor A11
+#define water_level_sensor 49
 
 // Water pump/ motor
 #define IN3 12
@@ -52,6 +54,8 @@ int becomes_light_message_size;
 char lightVal_string_dark[] = "Dark ";
 char lightVal_string_dim[] = "Dim  ";
 char lightVal_string_light[] = "Light";
+//
+char outofwater_message[] = "Out of Water";
 
 
 
@@ -75,6 +79,9 @@ const int wet = 303; // value for wet sensor
 int raw_light;
 int lightVal;
 
+//water level
+int waterLevel;
+
 //volatile int buttonState
 volatile bool buttonPressedTemp = false;
 volatile bool buttonPressedHumid = false;
@@ -91,6 +98,9 @@ void setup() {
   //motor
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
+
+  //photoelectric water level sensor
+  pinMode(water_level_sensor, INPUT);
 
   pinMode(BUTTON_PIN_TEMP, INPUT_PULLUP);
   pinMode(BUTTON_PIN_HUMID, INPUT_PULLUP);
@@ -146,29 +156,17 @@ void loop() {
   //light level read
   raw_light = analogRead(light_sensor); // read the raw value from light_sensor
   //lightVal = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100v
+
+  //water level read
+  waterLevel = digitalRead(water_level_sensor);
   
 
   //TEMP
   if (buttonPressedTemp) {
-    int tempValF_size = sizeof(tempValF_string);
     dtostrf(tempValF, -3, 2,tempValF_string);
     //speak
     voice.say(sp2_TEMPERATURE);
-    for (int index=0; index<tempValF_size; index++){
-      switch(tempValF_string[index]){
-        case '1': voice.say(spc_ONE); break;
-        case '2': voice.say(spc_TWO); break;
-        case '3': voice.say(spc_THREE); break;
-        case '4': voice.say(spc_FOUR); break;
-        case '5': voice.say(spc_FIVE); break;
-        case '6': voice.say(spc_SIX); break;
-        case '7': voice.say(spc_SEVEN); break;
-        case '8': voice.say(spc_EIGHT); break;
-        case '9': voice.say(spc_NINE); break;
-        case '10': voice.say(spc_TEN); break;
-        case '.': voice.say(sp2_POINT); break;
-      }
-    }
+    sayNumbers(tempValF_string);
     voice.say(sp3_FARENHEIT);
     
     //display on OLED screen
@@ -178,11 +176,10 @@ void loop() {
     
     strcpy(becomes_temp_message, "Temperature:");
     strcat(becomes_temp_message, tempValF_string);
-    //strcat(becomes_temp_message, "\xB0"); //not working 
     strcat(becomes_temp_message, " F");
 
     becomes_temp_message_size = sizeof(becomes_temp_message);
-    //int tempValF_size = sizeof(tempValF_string);
+    int tempValF_size = sizeof(tempValF_string);
 
   for (int i = 0; i <= becomes_temp_message_size; i++){
     display.setCursor(0, 15);
@@ -192,20 +189,24 @@ void loop() {
     display.clearDisplay();
     display.display();
   }
-  // display.drawBitmap(0, 15, degreeSymbolBitmap, 2, 2, WHITE);
-  // display.display();
-  // display.clearDisplay();
-  // display.display();
 
   buttonPressedTemp = false;  // Reset the button flag
   }
 
   //HUMID
   else if (buttonPressedHumid) {
+    dtostrf(humidityVal, -3, 2, humidityVal_string);
+    //speak
+    voice.say(sp2_H);
+    voice.say(sp2_U);
+    sayNumbers(humidityVal_string);
+    voice.say(sp2_PERCENT);
+
+
     display.setTextSize(5.5);
     display.setTextColor(WHITE);
+
     //create string that prints for humid info
-    dtostrf(humidityVal, -3, 2, humidityVal_string);
     strcpy(becomes_humid_message, "Humidity:");
     strcat(becomes_humid_message, humidityVal_string);
     strcat(becomes_humid_message, "%");
@@ -233,27 +234,35 @@ void loop() {
     //create string that prints for soil info
     //dtostrf(soilVal, -1, 0, soilVal_string);
 
+    //speak
+    voice.say(sp2_S);
+    voice.say(sp2_O);
+    delay(260);
+
     strcpy(becomes_soil_message, "Soil:");
     //strcat(becomes_soil_message, soilVal_string);
     if (raw_soil < 392) {
       strcat(becomes_soil_message, soilVal_string_wet);
+      voice.say(sp2_W); voice.say(sp2_E); voice.say(sp2_T);
     } else if (raw_soil < 481) {
       strcat(becomes_soil_message, soilVal_string_damp);
+      voice.say(sp2_D); voice.say(sp2_A); voice.say(sp2_M); voice.say(sp2_P);
     } else  { //if (raw_soil < 570)
       strcat(becomes_soil_message, soilVal_string_dry);
+      voice.say(sp2_D); voice.say(sp2_R); voice.say(sp2_Y);
     } 
     //strcat(becomes_soil_message, "%");
 
     becomes_soil_message_size = sizeof(becomes_soil_message);
 
     for (int i = 0; i <= becomes_soil_message_size; i++){
-    display.setCursor(0, 15);
-    display.print(becomes_soil_message+i);
-    display.display();
-    delay(1000);
-    display.clearDisplay();
-    display.display();
-  }
+      display.setCursor(0, 15);
+      display.print(becomes_soil_message+i);
+      display.display();
+      delay(1000);
+      display.clearDisplay();
+      display.display();
+    }
 
     buttonPressedSoil = false;
   }
@@ -262,46 +271,93 @@ void loop() {
   else if (buttonPressedLight) {
     display.setTextSize(5.5);
     display.setTextColor(WHITE);
+    //speak
+    voice.say(sp2_LIGHT);
+
     //create string that prints for light info
     //dtostrf(lightVal, -1, 0, lightVal_string);
     strcpy(becomes_light_message, "Light:");
     if (raw_light < 10) {
       strcat(becomes_light_message, lightVal_string_dark);
+      voice.say(sp2_D); voice.say(sp2_A); voice.say(sp2_R); voice.say(sp2_K);
     } else if (raw_light < 200) {
       strcat(becomes_light_message, lightVal_string_dim);
+      voice.say(sp2_D); voice.say(sp2_I); voice.say(sp2_M);
     } else  { //if (raw_light < 500)
       strcat(becomes_light_message, lightVal_string_light);
+      voice.say(sp2_LIGHT);
     } 
     //strcat(becomes_light_message, "%");
 
     becomes_light_message_size = sizeof(becomes_light_message);
 
     for (int i = 0; i <= becomes_light_message_size; i++){
-    display.setCursor(0, 15);
-    display.print(becomes_light_message+i);
-    display.display();
-    delay(1000);
-    display.clearDisplay();
-    display.display();
-  }
+      display.setCursor(0, 15);
+      display.print(becomes_light_message+i);
+      display.display();
+      delay(1000);
+      display.clearDisplay();
+      display.display();
+    }
 
     buttonPressedLight = false;
   } 
 
+  //polling soil moisture level to pump water in if needed
   /*while(raw_soil < 570 && raw_soil > 481){
     //run at 50% speed
     analogWrite(IN3,255/2);
     digitalWrite(IN4, LOW);
     delay(9000);
 
-    //stop
+    //stop water pump
     digitalWrite(IN3,LOW);
     digitalWrite(IN4, LOW);
     delay(10000);
     //recheck
     raw_soil = analogRead(soil_sensor);
   }*/
-      
+  
+  //check water level to tell user to add water to reserve if needed
+  /*while(waterLevel == 0) {
+    //stop water pump
+    digitalWrite(IN3,LOW);
+    digitalWrite(IN4, LOW);
+
+    voice.say(outoffuel);
+
+    display.setTextSize(5.5);
+    display.setTextColor(WHITE);
+    for (int i = 0; i <= 11; i++){
+      display.setCursor(0, 15);
+      display.print(outofwater_message+i);
+      display.display();
+      delay(500);
+      display.clearDisplay();
+      display.display();
+    }
+
+    delay(10000);
+  }*/
       /**/
 
+}
+
+void sayNumbers(char* value_string){
+  int value_string_size = strlen(value_string);
+  for (int index=0; index<value_string_size; index++){
+    switch(value_string[index]){
+      case '1': voice.say(spc_ONE); break;
+      case '2': voice.say(spc_TWO); break;
+      case '3': voice.say(spc_THREE); break;
+      case '4': voice.say(spc_FOUR); break;
+      case '5': voice.say(spc_FIVE); break;
+      case '6': voice.say(spc_SIX); break;
+      case '7': voice.say(spc_SEVEN); break;
+      case '8': voice.say(spc_EIGHT); break;
+      case '9': voice.say(spc_NINE); break;
+      case '.': voice.say(sp2_POINT); break;
+      default: voice.say(sp2_ZERO); break;
+      }
+    }
 }
