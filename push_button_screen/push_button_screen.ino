@@ -2,6 +2,16 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#include <Arduino.h>
+
+#include "Talkie.h"
+#include "Vocab_US_Large.h" //"temperature", "light", letters //sp2_
+#include "Vocab_Special.h" //sp
+#include "Vocab_US_TI99.h" //pauses
+#include "Vocab_US_Clock.h" //spc_
+#include "Vocab_US_Acorn.h" //"F" //spa_
+Talkie voice;
+
 
 #include <DHT.h>
 #include "DHT.h"             // Library for DHT sensors
@@ -28,16 +38,17 @@ char humidityVal_string[5];
 //
 char becomes_soil_message[9];
 int becomes_soil_message_size;
-char soilVal_string[3];
+//char soilVal_string[3];
+char soilVal_string_dry[] = "Dry ";
+char soilVal_string_damp[] = "Damp";
+char soilVal_string_wet[] = "Wet ";
 // 
-char becomes_light_message[10];
+char becomes_light_message[11];
 int becomes_light_message_size;
-char lightVal_string[3];
+char lightVal_string_dark[] = "Dark ";
+char lightVal_string_dim[] = "Dim  ";
+char lightVal_string_light[] = "Light";
 
-
-/* const uint8_t degreeSymbolBitmap[] PROGMEM = {
-   0x1C, 0x36, 0x36, 0x1C,  // This is a simple degree symbol bitmap, you can adjust it as needed
- };*/
 
 
 DHT dht(dhtPin, dhtType);    // Initialise the DHT library
@@ -53,8 +64,8 @@ float heatIndexF;            // windchill in degrees Fahrenheit
 //int soil_sensor = A15; 
 int raw_soil;
 int soilVal;
-const int dry = 566; // value for dry sensor
-const int wet = 260; // value for wet sensor
+const int dry = 570; // value for dry sensor
+const int wet = 303; // value for wet sensor
 
 //light
 int raw_light;
@@ -122,11 +133,11 @@ void loop() {
 
   //soil moisture read
   raw_soil = analogRead(soil_sensor);
-  soilVal = map(raw_soil, wet, dry, 100, 0); 
+  //soilVal = map(raw_soil, wet, dry, 100, 0); 
 
   //light level read
   raw_light = analogRead(light_sensor); // read the raw value from light_sensor
-  lightVal = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100v
+  //lightVal = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100v
   
 
   //TEMP
@@ -190,11 +201,18 @@ void loop() {
     display.setTextSize(5.5);
     display.setTextColor(WHITE);
     //create string that prints for soil info
-    dtostrf(soilVal, -1, 0, soilVal_string);
+    //dtostrf(soilVal, -1, 0, soilVal_string);
 
     strcpy(becomes_soil_message, "Soil:");
-    strcat(becomes_soil_message, soilVal_string);
-    strcat(becomes_soil_message, "%");
+    //strcat(becomes_soil_message, soilVal_string);
+    if (raw_soil < 392) {
+      strcat(becomes_soil_message, soilVal_string_wet);
+    } else if (raw_soil < 481) {
+      strcat(becomes_soil_message, soilVal_string_damp);
+    } else  { //if (raw_light < 500)
+      strcat(becomes_soil_message, soilVal_string_dry);
+    } 
+    //strcat(becomes_soil_message, "%");
 
     becomes_soil_message_size = sizeof(becomes_soil_message);
 
@@ -215,9 +233,15 @@ void loop() {
     display.setTextSize(5.5);
     display.setTextColor(WHITE);
     //create string that prints for light info
-    dtostrf(lightVal, -1, 0, lightVal_string);
+    //dtostrf(lightVal, -1, 0, lightVal_string);
     strcpy(becomes_light_message, "Light:");
-    strcat(becomes_light_message, lightVal_string);
+    if (raw_light < 10) {
+      strcat(becomes_light_message, lightVal_string_dark);
+    } else if (raw_light < 200) {
+      strcat(becomes_light_message, lightVal_string_dim);
+    } else  { //if (raw_light < 500)
+      strcat(becomes_light_message, lightVal_string_light);
+    } 
     //strcat(becomes_light_message, "%");
 
     becomes_light_message_size = sizeof(becomes_light_message);
@@ -232,6 +256,9 @@ void loop() {
   }
 
     buttonPressedLight = false;
-  } /**/
+  } 
+
+  /*while(){
+    {*/
 
 }
