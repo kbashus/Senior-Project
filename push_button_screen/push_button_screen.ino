@@ -8,7 +8,7 @@
 #include "Vocab_US_Large.h" //"temperature", "light", letters //sp2_
 #include "Vocab_Special.h" //sp
 #include "Vocab_US_TI99.h" //pauses
-#include "Vocab_US_Clock.h" //spc_
+#include "Vocab_US_Clock.h" //spc_ //nums
 #include "Vocab_US_Acorn.h" //"F" //spa_
 Talkie voice;
 
@@ -150,17 +150,39 @@ void loop() {
 
   //TEMP
   if (buttonPressedTemp) {
+    int tempValF_size = sizeof(tempValF_string);
+    dtostrf(tempValF, -3, 2,tempValF_string);
+    //speak
+    voice.say(sp2_TEMPERATURE);
+    for (int index=0; index<tempValF_size; index++){
+      switch(tempValF_string[index]){
+        case '1': voice.say(spc_ONE); break;
+        case '2': voice.say(spc_TWO); break;
+        case '3': voice.say(spc_THREE); break;
+        case '4': voice.say(spc_FOUR); break;
+        case '5': voice.say(spc_FIVE); break;
+        case '6': voice.say(spc_SIX); break;
+        case '7': voice.say(spc_SEVEN); break;
+        case '8': voice.say(spc_EIGHT); break;
+        case '9': voice.say(spc_NINE); break;
+        case '10': voice.say(spc_TEN); break;
+        case '.': voice.say(sp2_POINT); break;
+      }
+    }
+    voice.say(sp3_FARENHEIT);
+    
+    //display on OLED screen
     display.setTextSize(5.5);
     display.setTextColor(WHITE);
     //create string that prints for temp info
-    dtostrf(tempValF, -3, 2,tempValF_string);
+    
     strcpy(becomes_temp_message, "Temperature:");
     strcat(becomes_temp_message, tempValF_string);
     //strcat(becomes_temp_message, "\xB0"); //not working 
     strcat(becomes_temp_message, " F");
 
     becomes_temp_message_size = sizeof(becomes_temp_message);
-    int tempValF_size = sizeof(tempValF_string);
+    //int tempValF_size = sizeof(tempValF_string);
 
   for (int i = 0; i <= becomes_temp_message_size; i++){
     display.setCursor(0, 15);
@@ -266,7 +288,7 @@ void loop() {
     buttonPressedLight = false;
   } 
 
-  while(raw_soil < 570 && raw_soil > 481){
+  /*while(raw_soil < 570 && raw_soil > 481){
     //run at 50% speed
     analogWrite(IN3,255/2);
     digitalWrite(IN4, LOW);
@@ -278,7 +300,7 @@ void loop() {
     delay(10000);
     //recheck
     raw_soil = analogRead(soil_sensor);
-  }
+  }*/
       
       /**/
 
