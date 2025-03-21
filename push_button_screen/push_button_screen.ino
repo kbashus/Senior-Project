@@ -25,6 +25,10 @@ Talkie voice;
 #define soil_sensor A15
 #define light_sensor A11
 
+// Water pump/ motor
+#define IN3 12
+#define IN4 11
+
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 //
@@ -83,6 +87,10 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 void setup() {
   Serial.begin(115200);
   dht.begin();               // start with reading the DHT sensor
+
+  //motor
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
 
   pinMode(BUTTON_PIN_TEMP, INPUT_PULLUP);
   pinMode(BUTTON_PIN_HUMID, INPUT_PULLUP);
@@ -209,7 +217,7 @@ void loop() {
       strcat(becomes_soil_message, soilVal_string_wet);
     } else if (raw_soil < 481) {
       strcat(becomes_soil_message, soilVal_string_damp);
-    } else  { //if (raw_light < 500)
+    } else  { //if (raw_soil < 570)
       strcat(becomes_soil_message, soilVal_string_dry);
     } 
     //strcat(becomes_soil_message, "%");
@@ -258,7 +266,20 @@ void loop() {
     buttonPressedLight = false;
   } 
 
-  /*while(){
-    {*/
+  while(raw_soil < 570 && raw_soil > 481){
+    //run at 50% speed
+    analogWrite(IN3,255/2);
+    digitalWrite(IN4, LOW);
+    delay(9000);
+
+    //stop
+    digitalWrite(IN3,LOW);
+    digitalWrite(IN4, LOW);
+    delay(10000);
+    //recheck
+    raw_soil = analogRead(soil_sensor);
+  }
+      
+      /**/
 
 }
