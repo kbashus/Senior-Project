@@ -26,6 +26,8 @@ Talkie voice;
 #define soil_sensor A15
 #define light_sensor A11
 #define water_level_sensor 49
+#define LED 51
+#define RELAY_PIN 47
 
 // Water pump/ motor
 #define IN3 12
@@ -69,7 +71,6 @@ float heatIndexC;            // windchill in degrees Celcius
 float heatIndexF;            // windchill in degrees Fahrenheit
 
 //soil
-//int soil_sensor = A15; 
 int raw_soil;
 int soilVal;
 const int dry = 570; // value for dry sensor
@@ -102,10 +103,17 @@ void setup() {
   //photoelectric water level sensor
   pinMode(water_level_sensor, INPUT);
 
+  //LED
+  pinMode(LED, OUTPUT);
+
+  //relay
+  pinMode(RELAY_PIN, OUTPUT);
+
+  //buttons with attach interrupt
   pinMode(BUTTON_PIN_TEMP, INPUT_PULLUP);
   pinMode(BUTTON_PIN_HUMID, INPUT_PULLUP);
-  //pinMode(BUTTON_PIN_SOIL, INPUT_PULLUP);
-  //pinMode(BUTTON_PIN_LIGHT, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_SOIL, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_LIGHT, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_TEMP), buttonPressTemp, RISING);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_HUMID), buttonPressHumid, RISING);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_SOIL), buttonPressSoil, RISING);
@@ -155,7 +163,7 @@ void loop() {
 
   //light level read
   raw_light = analogRead(light_sensor); // read the raw value from light_sensor
-  //lightVal = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100v
+  lightVal = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100v
 
   //water level read
   waterLevel = digitalRead(water_level_sensor);
@@ -167,6 +175,7 @@ void loop() {
     //speak
     voice.say(sp2_TEMPERATURE);
     sayNumbers(tempValF_string);
+    voice.say(sp2_DEGREES);
     voice.say(sp3_FARENHEIT);
     
     //display on OLED screen
@@ -241,7 +250,7 @@ void loop() {
 
     strcpy(becomes_soil_message, "Soil:");
     //strcat(becomes_soil_message, soilVal_string);
-    if (raw_soil < 392) {
+    if (raw_soil < wet) {
       strcat(becomes_soil_message, soilVal_string_wet);
       voice.say(sp2_W); voice.say(sp2_E); voice.say(sp2_T);
     } else if (raw_soil < 481) {
@@ -277,17 +286,16 @@ void loop() {
     //create string that prints for light info
     //dtostrf(lightVal, -1, 0, lightVal_string);
     strcpy(becomes_light_message, "Light:");
-    if (raw_light < 10) {
+    if (lightVal < 20) {
       strcat(becomes_light_message, lightVal_string_dark);
       voice.say(sp2_D); voice.say(sp2_A); voice.say(sp2_R); voice.say(sp2_K);
-    } else if (raw_light < 200) {
+    } else if (lightVal < 50) {
       strcat(becomes_light_message, lightVal_string_dim);
       voice.say(sp2_D); voice.say(sp2_I); voice.say(sp2_M);
     } else  { //if (raw_light < 500)
       strcat(becomes_light_message, lightVal_string_light);
       voice.say(sp2_LIGHT);
     } 
-    //strcat(becomes_light_message, "%");
 
     becomes_light_message_size = sizeof(becomes_light_message);
 
@@ -304,7 +312,7 @@ void loop() {
   } 
 
   //polling soil moisture level to pump water in if needed
-  /*while(raw_soil < 570 && raw_soil > 481){
+  if(raw_soil > 481){ // && raw_soil < 570
     //run at 50% speed
     analogWrite(IN3,255/2);
     digitalWrite(IN4, LOW);
@@ -316,33 +324,38 @@ void loop() {
     delay(10000);
     //recheck
     raw_soil = analogRead(soil_sensor);
-  }*/
+  }
   
   //check water level to tell user to add water to reserve if needed
-  /*while(waterLevel == 0) {
+  if(waterLevel == 0) {
     //stop water pump
     digitalWrite(IN3,LOW);
     digitalWrite(IN4, LOW);
 
+    //communicate "out of water"
     voice.say(outoffuel);
-
-    display.setTextSize(5.5);
-    display.setTextColor(WHITE);
-    for (int i = 0; i <= 11; i++){
-      display.setCursor(0, 15);
-      display.print(outofwater_message+i);
-      display.display();
-      delay(500);
-      display.clearDisplay();
-      display.display();
+    
+    for(int i=0; i<5; i++){
+      digitalWrite(LED, HIGH);  // turn the LED on
+      delay(1000);              // 1 sec
+      digitalWrite(LED, LOW);   // turn the LED off
+      delay(1000);               
     }
-
+    
     delay(10000);
-  }*/
-      /**/
+    
+  }
+
+  if(lightVal < 20){
+    digitalWrite(RELAY_PIN, HIGH); // turn on
+  } else {
+    digitalWrite(RELAY_PIN, LOW); // turn off
+  }
+    
 
 }
 
+//function to say numerical values from sensors when buttons pressed
 void sayNumbers(char* value_string){
   int value_string_size = strlen(value_string);
   for (int index=0; index<value_string_size; index++){
