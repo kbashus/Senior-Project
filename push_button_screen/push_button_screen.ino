@@ -359,8 +359,10 @@ void loop() {
   //check if area dark to turn on light bulb if needed
   if(lightVal < 20){
     digitalWrite(RELAY_PIN, HIGH); // turn on
+    delay(5000);
   } else {
     digitalWrite(RELAY_PIN, LOW); // turn off
+    delay(5000);
   }
   
 }
