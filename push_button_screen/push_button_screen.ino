@@ -1,28 +1,31 @@
+#include <Arduino.h>
+
+//OLED screen
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#include <Arduino.h>
-
+//voice
 #include "Talkie.h"
 #include "Vocab_US_Large.h" //"temperature", "light", letters //sp2_
-#include "Vocab_Special.h" //sp
+#include "Vocab_Special.h" //sp_
 #include "Vocab_US_TI99.h" //pauses
 #include "Vocab_US_Clock.h" //spc_ //nums
 #include "Vocab_US_Acorn.h" //"F" //spa_
 #include "Vocab_AstroBlaster.h" //"outoffuel"
 Talkie voice;
 
-
+//temp sensor
 #include <DHT.h>
-#include "DHT.h"             // Library for DHT sensors
+#include "DHT.h"
 
+//buttons, sensors, LED, relay pins
 #define BUTTON_PIN_TEMP 3
 #define BUTTON_PIN_HUMID 2
 #define BUTTON_PIN_SOIL 18
 #define BUTTON_PIN_LIGHT 19
 #define dhtPin 53            // temp/humid
-#define dhtType DHT22      // DHT 22 (AM2302)
+#define dhtType DHT22
 #define soil_sensor A15
 #define light_sensor A11
 #define water_level_sensor 49
@@ -33,46 +36,44 @@ Talkie voice;
 #define IN3 12
 #define IN4 11
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-//
+#define SCREEN_WIDTH 128 //in pixels
+#define SCREEN_HEIGHT 64 
+
+//To speak/display
 char becomes_temp_message[18];
 int becomes_temp_message_size;
 char tempValF_string[5];
-//
+
 char becomes_humid_message[15];
 int becomes_humid_message_size;
 char humidityVal_string[5];
-//
+
 char becomes_soil_message[9];
 int becomes_soil_message_size;
-//char soilVal_string[3];
 char soilVal_string_dry[] = "Dry ";
 char soilVal_string_damp[] = "Damp";
 char soilVal_string_wet[] = "Wet ";
-// 
+
 char becomes_light_message[11];
 int becomes_light_message_size;
 char lightVal_string_dark[] = "Dark ";
 char lightVal_string_dim[] = "Dim  ";
 char lightVal_string_light[] = "Light";
-//
+
 char outofwater_message[] = "Out of Water";
 
 
-
-DHT dht(dhtPin, dhtType);    // Initialise the DHT library
+DHT dht(dhtPin, dhtType);    // Initialize DHT library
 
 //temp and humid
 float humidityVal;           // humidity
 float tempValC;              // temperature in degrees Celcius
 float tempValF;              // temperature in degrees Fahrenheit
-float heatIndexC;            // windchill in degrees Celcius
-float heatIndexF;            // windchill in degrees Fahrenheit
 
 //soil
 int raw_soil;
 int soilVal;
+  //requires calibration with device to obtain values
 const int dry = 570; // value for dry sensor
 const int wet = 303; // value for wet sensor
 
@@ -89,12 +90,12 @@ volatile bool buttonPressedHumid = false;
 volatile bool buttonPressedSoil = false;
 volatile bool buttonPressedLight = false;
 
-// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+// Declaration for SSD1306 display connected to I2C (SDA, SCL pins)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 void setup() {
   Serial.begin(115200);
-  dht.begin();               // start with reading the DHT sensor
+  dht.begin();          
 
   //motor
   pinMode(IN3, OUTPUT);
@@ -119,20 +120,19 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_SOIL), buttonPressSoil, RISING);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN_LIGHT), buttonPressLight, RISING);
 
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x64
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
+
   display.setTextWrap(false);
   delay(2000);
   display.clearDisplay();
   display.display();
-  
 }
 
-
+//interrupt functions
 void buttonPressTemp(){
-  //buttonState = digitalRead(BUTTON_PIN);
   buttonPressedTemp = true;
 }
 void buttonPressHumid(){
@@ -147,9 +147,9 @@ void buttonPressLight(){
 
 void loop() {
   //temp and humid read
-  humidityVal = dht.readHumidity();        // get the humidity from the DHT sensor
-  tempValC = dht.readTemperature();        // get the temperature in degrees Celcius from the DHT sensor
-  tempValF = dht.readTemperature(true);    // get the temperature in degrees Fahrenheit from the DHT sensor
+  humidityVal = dht.readHumidity();        // get humidity from the DHT sensor
+  tempValC = dht.readTemperature();        // get temperature in degrees Celcius from the DHT sensor
+  tempValF = dht.readTemperature(true);    // get temperature in degrees Fahrenheit from the DHT sensor
 
   // Check if all values are read correctly, if not try again and exit loop()
   if (isnan(humidityVal) || isnan(tempValC) || isnan(tempValF)) {
@@ -159,7 +159,7 @@ void loop() {
 
   //soil moisture read
   raw_soil = analogRead(soil_sensor);
-  //soilVal = map(raw_soil, wet, dry, 100, 0); 
+  //soilVal = map(raw_soil, wet, dry, 100, 0);
 
   //light level read
   raw_light = analogRead(light_sensor); // read the raw value from light_sensor
@@ -168,6 +168,7 @@ void loop() {
   //water level read
   waterLevel = digitalRead(water_level_sensor);
   
+  //CONSEQUENCES of interrupts (not in ISRs due displays need for interrupts)
 
   //TEMP
   if (buttonPressedTemp) {
@@ -181,8 +182,8 @@ void loop() {
     //display on OLED screen
     display.setTextSize(5.5);
     display.setTextColor(WHITE);
+
     //create string that prints for temp info
-    
     strcpy(becomes_temp_message, "Temperature:");
     strcat(becomes_temp_message, tempValF_string);
     strcat(becomes_temp_message, " F");
@@ -198,6 +199,8 @@ void loop() {
     display.clearDisplay();
     display.display();
   }
+
+  memset(becomes_temp_message, '\0', sizeof(becomes_temp_message)); //clear char array
 
   buttonPressedTemp = false;  // Reset the button flag
   }
@@ -232,6 +235,8 @@ void loop() {
     display.display();
   }
 
+  memset(becomes_humid_message, '\0', sizeof(becomes_humid_message)); //clear char array
+
   buttonPressedHumid = false;  // Reset the button flag
   }
 
@@ -259,8 +264,7 @@ void loop() {
     } else  { //if (raw_soil < 570)
       strcat(becomes_soil_message, soilVal_string_dry);
       voice.say(sp2_D); voice.say(sp2_R); voice.say(sp2_Y);
-    } 
-    //strcat(becomes_soil_message, "%");
+    }
 
     becomes_soil_message_size = sizeof(becomes_soil_message);
 
@@ -272,6 +276,8 @@ void loop() {
       display.clearDisplay();
       display.display();
     }
+
+    memset(becomes_soil_message, '\0', sizeof(becomes_soil_message));
 
     buttonPressedSoil = false;
   }
@@ -308,8 +314,13 @@ void loop() {
       display.display();
     }
 
+    memset(becomes_light_message, '\0', sizeof(becomes_light_message));
+
     buttonPressedLight = false;
-  } 
+  }
+
+
+  //OUTSIDE of interrupts
 
   //polling soil moisture level to pump water in if needed
   if(raw_soil > 481){ // && raw_soil < 570
@@ -343,19 +354,18 @@ void loop() {
     }
     
     delay(10000);
-    
   }
 
+  //check if area dark to turn on light bulb if needed
   if(lightVal < 20){
     digitalWrite(RELAY_PIN, HIGH); // turn on
   } else {
     digitalWrite(RELAY_PIN, LOW); // turn off
   }
-    
-
+  
 }
 
-//function to say numerical values from sensors when buttons pressed
+//function to say numerical values, from sensors when buttons pressed
 void sayNumbers(char* value_string){
   int value_string_size = strlen(value_string);
   for (int index=0; index<value_string_size; index++){
